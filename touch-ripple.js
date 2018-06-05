@@ -116,10 +116,12 @@
 	 * @returns {Ripple}
 	 */
 	Ripple.prototype.config = function(config){
-		for (var i = 0; i < Ripple.availableConfigKeys.length; i++) {
-			var key = Ripple.availableConfigKeys[i];
-			if (config[key] !== undefined) {
-				this[key] = config[key];
+		if(config){
+			for (var i = 0; i < Ripple.availableConfigKeys.length; i++) {
+				var key = Ripple.availableConfigKeys[i];
+				if (config[key] !== undefined) {
+					this[key] = config[key];
+				}
 			}
 		}
 
