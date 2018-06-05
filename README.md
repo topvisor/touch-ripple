@@ -1,6 +1,6 @@
 # touch-ripple
 
-Material Design Ripple effect with jQuery and CSS. It uses only the touch events. [Watch demos!](https://topvisor.com/)
+Material Design Ripple effect with jQuery and CSS. It uses only the touch events. [Watch demos!](https://htmlpreview.github.io/?https://github.com/topvisor/touch-ripple/blob/master/demo.html)
 
 # Usage
 
