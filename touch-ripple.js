@@ -10,7 +10,7 @@
 	/**
 	 * @typedef {Object} TouchRippleParams
 	 *
-	 * @param {'init'|'destroy'} [method='init']
+	 * @param {string} [method='init']
 	 * @param {TouchRippleParams} [params]
 	 * @returns {jQuery.fn.init}
 	 */
@@ -90,6 +90,7 @@
 	Ripple.prototype.rippleCircleClass = 'ripple-circle';
 	Ripple.prototype.opacityDataName = 'ripple-opacity';
 	Ripple.prototype.backgroundDataName = 'ripple-background';
+	Ripple.prototype.expanseDelayDataName = 'ripple-expanse-delay';
 	Ripple.prototype.expanseDelay = 150;
 	Ripple.prototype.expanseDuration = 175;
 	Ripple.prototype.expanseEasing = 'linear';
@@ -106,6 +107,7 @@
 	 * @property {string} rippleCircleClass
 	 * @property {string} opacityDataName
 	 * @property {string} backgroundDataName
+	 * @property {string} expanseDelayDataName
 	 * @property {number} expanseDelay
 	 * @property {number} expanseDuration
 	 * @property {string} expanseEasing
@@ -168,9 +170,11 @@
 
 			this.touches[touch.identifier] = touch;
 
+			var delay = $target.data(this.expanseDelayDataName);
+			if(delay === undefined) delay = this.expanseDelay;
 			setTimeout(function () {
 				if (this.touches[touch.identifier]) this.startAnimation(touch);
-			}.bind(this), this.expanseDelay);
+			}.bind(this), delay);
 		}
 	};
 
@@ -200,7 +204,7 @@
 		$target
 			.addClass(this.rippleOnClass)
 			.css('overflow', 'hidden')
-			.children(this.rippleCircleClass)
+			.children('.'+this.rippleCircleClass)
 			.stop()
 			.remove();
 
@@ -264,7 +268,7 @@
 		if(!touch.rippleAnimationEnded) return;
 
 		var $target = $(touch.target);
-		var $rippleCircle = $target.children(this.rippleCircleClass);
+		var $rippleCircle = $target.children('.'+this.rippleCircleClass);
 
 		$rippleCircle.animate(
 			{opacity: 0},
