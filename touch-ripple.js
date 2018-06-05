@@ -91,7 +91,7 @@
 	Ripple.prototype.opacityDataName = 'ripple-opacity';
 	Ripple.prototype.backgroundDataName = 'ripple-background';
 	Ripple.prototype.expanseDelayDataName = 'ripple-expanse-delay';
-	Ripple.prototype.expanseDelay = 150;
+	Ripple.prototype.expanseDelay = 0;
 	Ripple.prototype.expanseDuration = 175;
 	Ripple.prototype.expanseEasing = 'linear';
 	Ripple.prototype.fadeDuration = 175;
