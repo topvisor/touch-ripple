@@ -15,7 +15,8 @@ $('body').ripple({
 	rippleCircleClass: 'ripple-circle',
 	opacityDataName: 'ripple-opacity',
 	backgroundDataName: 'ripple-background',
-	expanseDelay: 150,
+	expanseDelayDataName: 'ripple-expanse-delay',
+	expanseDelay: 0,
 	expanseDuration: 175,
 	expanseEasing: 'linear',
 	fadeDuration: 175,
@@ -28,5 +29,5 @@ $('body').ripple('destroy');
 
 You can use the data attribute to modify the ripple parameters of dom element
 ```html
-<div class="ripple" data-ripple-opacity="0.2" data-ripple-background="#000"></div> 
+<div class="ripple" data-ripple-opacity="0.2" data-ripple-background="#000" data-ripple-expanse-delay="150"></div> 
 ```
