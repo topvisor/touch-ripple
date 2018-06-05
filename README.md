@@ -1,6 +1,6 @@
 # touch-ripple
 
-Material Design Ripple effect with jQuery and CSS. It uses only the touch events. [Show me the demos!](https://topvisor.com/)
+Material Design Ripple effect with jQuery and CSS. It uses only the touch events. [Watch demos!](https://topvisor.com/)
 
 # Usage
 
@@ -24,4 +24,9 @@ $('body').ripple({
 
 // destroy
 $('body').ripple('destroy');
+```
+
+You can use the data attribute to modify the ripple parameters of dom element
+```html
+<div class="ripple" data-ripple-opacity="0.2" data-ripple-background="#000"></div> 
 ```
