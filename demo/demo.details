@@ -1,9 +1,0 @@
----
- name: touch-ripple demo
- description: Material Design Ripple effect with jQuery and CSS. It uses only the touch events.
- authors:
-   - Anton Solovyov
- resources:
-   - https://raw.githubusercontent.com/topvisor/touch-ripple/master/touch-ripple.js
- normalize_css: no
-...
