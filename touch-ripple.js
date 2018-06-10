@@ -4,7 +4,7 @@
  * @link https://github.com/topvisor/touch-ripple
  * @author Anton Solovyov <decaseal@gmail.com>
  * @license MIT
- * @version 0.1
+ * @version 0.2
  */
 (function($){
 	/**
@@ -159,14 +159,24 @@
 	 */
 	Ripple.prototype.startTouch = function(e){
 		for(var i = 0; i < e.changedTouches.length; i++) {
-			var touch = e.changedTouches[i];
+			var touch = {};
+			$.each(e.changedTouches[i], function(key, val){
+				touch[key] = val;
+			});
+
 			var $target = $(touch.target);
 
-			if (
-				!$target.is(this.selector) ||
-				$target.is(this.excludeSelector) ||
-				this.touches[touch.identifier] !== undefined
-			) return;
+			if(this.touches[touch.identifier] !== undefined ||
+				$target.is(this.excludeSelector)) return;
+
+			if(!$target.is(this.selector)){
+				$target = $target.closest(this.selector);
+				touch.target = $target[0];
+
+				if($target.length === 0 ||
+					$target.closest(this.$el).length === 0 ||
+					$target.is(this.excludeSelector)) return;
+			}
 
 			this.touches[touch.identifier] = touch;
 
