@@ -204,7 +204,7 @@
 				.appendTo(touch.$currentTarget);
 		}
 
-		var offset = touch.$currentTarget.offset();
+		var offset = $wrapper.offset();
 		var touchPosition = {
 			left: touch.pageX - offset.left,
 			top: touch.pageY - offset.top
@@ -219,8 +219,8 @@
 			.empty()
 			.append($circle);
 
-		var height = touch.$currentTarget.outerHeight();
-		var width = touch.$currentTarget.outerWidth();
+		var height = $wrapper.outerHeight();
+		var width = $wrapper.outerWidth();
 		var diameter = Math.sqrt(
 			Math.pow(height + 2*(Math.abs(height/2 - touchPosition.top)), 2) +
 			Math.pow(width + 2*(Math.abs(width/2 - touchPosition.left)), 2)
