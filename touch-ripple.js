@@ -4,7 +4,7 @@
  * @link https://github.com/topvisor/touch-ripple
  * @author Anton Solovyov <decaseal@gmail.com>
  * @license MIT
- * @version 0.2
+ * @version 0.3
  */
 (function($){
 	/**
@@ -14,13 +14,13 @@
 	 * @param {TouchRippleParams} [params]
 	 * @returns {jQuery.fn.init}
 	 */
-	$.fn.ripple = function(method, params){
-		if (typeof method !== 'string' || typeof Ripple[method] !== 'function') {
+	$.fn.touchRipple = function(method, params){
+		if (typeof method !== 'string' || typeof TouchRipple[method] !== 'function') {
 			params = method;
 			method = 'init';
 		}
 
-		return Ripple[method](this, params);
+		return TouchRipple[method](this, params);
 	};
 
 	/**
@@ -28,26 +28,25 @@
 	 * @param {TouchRippleConfig} config
 	 * @constructor
 	 */
-	function Ripple($el, config){
+	function TouchRipple($el, config){
 		this.$el = $el;
 		this.config(config);
 		this.attachEvents();
 	}
 
-	Ripple.availableConfigKeys = ['opacity', 'background', 'selector', 'excludeSelector', 'rippleOnClass', 'rippleCircleClass', 'opacityDataName',
-		'backgroundDataName', 'expanseDelay', 'expanseDuration', 'expanseEasing', 'fadeDuration', 'fadeEasing'];
+	TouchRipple.availableConfigKeys = ['selector', 'exclude'];
 
 	/**
 	 *
 	 * @param {jQuery.fn.init} $el
-	 * @param {TouchRippleConfig} config
+	 * @param {TouchRippleConfig} [config]
 	 * @returns {jQuery.fn.init}
 	 */
-	Ripple.init = function($el, config){
+	TouchRipple.init = function($el, config){
 		var ripple = $el.data('touch-ripple');
 
 		if (ripple) ripple.config(config);
-		else $el.data('touch-ripple', new Ripple($el, config));
+		else $el.data('touch-ripple', new TouchRipple($el, config));
 
 		return $el;
 	};
@@ -57,7 +56,7 @@
 	 * @param {jQuery.fn.init} $el
 	 * @returns {jQuery.fn.init}
 	 */
-	Ripple.destroy = function($el){
+	TouchRipple.destroy = function($el){
 		var ripple = $el.data('touch-ripple');
 
 		if (ripple) {
@@ -71,56 +70,33 @@
 	/**
 	 * @type {jQuery.fn.init}
 	 */
-	Ripple.prototype.$el = undefined;
+	TouchRipple.prototype.$el = undefined;
 
 	/**
 	 * @typedef {Touch} RippleTouch
-	 * @property {boolean} rippleAnimationStarted
-	 * @property {boolean} rippleAnimationEnded
+	 * @property {jQuery.fn.init} $currentTarget
+	 * @property {boolean} [ended]
+	 * @property {boolean} [expandAnimation]
 	 *
 	 * @type {RippleTouch[]} - RippleTouch by Touch identifiers
 	 */
-	Ripple.prototype.touches = {};
+	TouchRipple.prototype.touches = {};
 
-	Ripple.prototype.opacity = 0.4;
-	Ripple.prototype.background = 'currentColor';
-	Ripple.prototype.selector = '.ripple';
-	Ripple.prototype.excludeSelector = '.no-ripple';
-	Ripple.prototype.rippleOnClass = 'ripple-on';
-	Ripple.prototype.rippleCircleClass = 'ripple-circle';
-	Ripple.prototype.opacityDataName = 'ripple-opacity';
-	Ripple.prototype.backgroundDataName = 'ripple-background';
-	Ripple.prototype.expanseDelayDataName = 'ripple-expanse-delay';
-	Ripple.prototype.expanseDelay = 0;
-	Ripple.prototype.expanseDuration = 175;
-	Ripple.prototype.expanseEasing = 'linear';
-	Ripple.prototype.fadeDuration = 175;
-	Ripple.prototype.fadeEasing = 'linear';
+	TouchRipple.prototype.selector = '.touch-ripple';
+	TouchRipple.prototype.exclude = '.no-touch-ripple';
 
 	/**
 	 * @typedef {TouchRippleParams} TouchRippleConfig
-	 * @property {number} opacity
-	 * @property {string} background
-	 * @property {string} selector
-	 * @property {string} excludeSelector
-	 * @property {string} rippleOnClass
-	 * @property {string} rippleCircleClass
-	 * @property {string} opacityDataName
-	 * @property {string} backgroundDataName
-	 * @property {string} expanseDelayDataName
-	 * @property {number} expanseDelay
-	 * @property {number} expanseDuration
-	 * @property {string} expanseEasing
-	 * @property {number} fadeDuration
-	 * @property {string} fadeEasing
+	 * @property {string} [selector]
+	 * @property {number} [delay]
 	 *
 	 * @param {TouchRippleConfig} config
-	 * @returns {Ripple}
+	 * @returns {TouchRipple}
 	 */
-	Ripple.prototype.config = function(config){
+	TouchRipple.prototype.config = function(config){
 		if(config){
-			for (var i = 0; i < Ripple.availableConfigKeys.length; i++) {
-				var key = Ripple.availableConfigKeys[i];
+			for (var i = 0; i < TouchRipple.availableConfigKeys.length; i++) {
+				var key = TouchRipple.availableConfigKeys[i];
 				if (config[key] !== undefined) {
 					this[key] = config[key];
 				}
@@ -131,24 +107,37 @@
 	};
 
 	/**
-	 * @returns {Ripple}
+	 * @returns {TouchRipple}
 	 */
-	Ripple.prototype.attachEvents = function(){
-		this.$el.on('touchstart.touchRipple', null, this, function(e){
-			e.data.startTouch(e);
+	TouchRipple.prototype.attachEvents = function(){
+		this.$el.on('touchstart.touchRipple', this.selector, this, function(e){
+			setTimeout(function(){
+				e.data.startTouch(e);
+			});
 		});
 
-		this.$el.on('touchmove.touchRipple touchend.touchRipple', null, this, function(e){
-			e.data.endTouch(e);
+		this.$el.on('touchmove.touchRipple touchend.touchRipple', this.selector, this, function(e){
+			setTimeout(function(){
+				e.data.endTouch(e);
+			});
 		});
+
+		this.$el.on(
+			'transitionend.touchRipple webkitTransitionEnd.touchRipple oTransitionEnd.touchRipple otransitionend.touchRipple',
+			'.touch-ripple-circle',
+			this,
+			function(e){
+				e.data.endCircleTransition(e);
+			}
+		);
 
 		return this;
 	};
 
 	/**
-	 * @returns {Ripple}
+	 * @returns {TouchRipple}
 	 */
-	Ripple.prototype.detachEvents = function(){
+	TouchRipple.prototype.detachEvents = function(){
 		this.$el.off('.touchRipple');
 
 		return this;
@@ -157,139 +146,118 @@
 	/**
 	 * @param {TouchEvent} e
 	 */
-	Ripple.prototype.startTouch = function(e){
-		for(var i = 0; i < e.changedTouches.length; i++) {
-			var touch = {};
-			$.each(e.changedTouches[i], function(key, val){
-				touch[key] = val;
-			});
+	TouchRipple.prototype.startTouch = function(e){
+		for (var i = 0; i < e.changedTouches.length; i++) {
+			var touch = e.changedTouches[i];
+			if (this.touches[touch.identifier]) return;
 
-			var $target = $(touch.target);
+			var $currentTarget = $(e.currentTarget);
+			if($currentTarget.is(this.exclude)) return;
 
-			if(this.touches[touch.identifier] !== undefined ||
-				$target.is(this.excludeSelector)) return;
+			var rippleTouch = {$currentTarget: $currentTarget};
+			for (var key in touch) rippleTouch[key] = touch[key];
 
-			if(!$target.is(this.selector)){
-				$target = $target.closest(this.selector);
-				touch.target = $target[0];
-
-				if($target.length === 0 ||
-					$target.closest(this.$el).length === 0 ||
-					$target.is(this.excludeSelector)) return;
-			}
-
-			this.touches[touch.identifier] = touch;
-
-			var delay = $target.data(this.expanseDelayDataName);
-			if(delay === undefined) delay = this.expanseDelay;
-			setTimeout(function () {
-				if (this.touches[touch.identifier]) this.startAnimation(touch);
-			}.bind(this), delay);
+			this.touches[touch.identifier] = rippleTouch;
+			this.expandAnimation(rippleTouch);
 		}
 	};
 
 	/**
 	 * @param {TouchEvent} e
 	 */
-	Ripple.prototype.endTouch = function(e){
-		for(var i = 0; i < e.changedTouches.length; i++) {
+	TouchRipple.prototype.endTouch = function(e){
+		for (var i = 0; i < e.changedTouches.length; i++) {
 			var touch = this.touches[e.changedTouches[i].identifier];
 			if (!touch) return;
+
+			touch.ended = true;
 			delete this.touches[touch.identifier];
 
-			if (!touch.rippleAnimationStarted && e.type === 'touchend') this.startAnimation(touch);
-			else this.endAnimation(touch);
+			if (e.type === 'touchend' && touch.expandAnimation === undefined) this.expandAnimation(touch);
+			else if (touch.expandAnimation === false) this.fadeAnimation(touch);
+			else if (touch.expandAnimation === undefined) touch.$currentTarget.children('.touch-ripple-circle-wrapper').remove();
+		}
+	};
+
+	TouchRipple.prototype.endCircleTransition = function(e){
+		var $circle = $(e.currentTarget);
+		var touch = $circle.data('touch');
+
+		if (e.originalEvent.propertyName === 'opacity') {
+			$circle.parent('.touch-ripple-circle-wrapper').remove();
+		} else if (e.originalEvent.propertyName === 'top') {
+			touch.expandAnimation = false;
+			if (touch.ended) this.fadeAnimation(touch);
 		}
 	};
 
 	/**
 	 * @param {RippleTouch} touch
-	 * @return {Ripple}
+	 * @return {TouchRipple}
 	 */
-	Ripple.prototype.startAnimation = function(touch){
-		touch.rippleAnimationStarted = true;
+	TouchRipple.prototype.expandAnimation = function(touch){
+		var $wrapper = touch.$currentTarget.children('.touch-ripple-circle-wrapper');
 
-		var $target = $(touch.target);
-
-		$target
-			.addClass(this.rippleOnClass)
-			.css('overflow', 'hidden')
-			.children('.'+this.rippleCircleClass)
-			.stop()
-			.remove();
-
-		if ($target.css('position') === 'static') {
-			$target.css('position', 'relative');
+		if (!$wrapper.length) {
+			$wrapper = $('<div>')
+				.addClass('touch-ripple-circle-wrapper')
+				.appendTo(touch.$currentTarget);
 		}
 
-		var offset = $target.offset();
-		var height = $target.outerHeight();
-		var width = $target.outerWidth();
+		var offset = touch.$currentTarget.offset();
 		var touchPosition = {
 			left: touch.pageX - offset.left,
 			top: touch.pageY - offset.top
 		};
+
+		var $circle = $('<div>')
+			.addClass('touch-ripple-circle')
+			.css(touchPosition)
+			.data('touch', touch);
+
+		$wrapper
+			.empty()
+			.append($circle);
+
+		var height = touch.$currentTarget.outerHeight();
+		var width = touch.$currentTarget.outerWidth();
 		var diameter = Math.sqrt(
 			Math.pow(height + 2*(Math.abs(height/2 - touchPosition.top)), 2) +
 			Math.pow(width + 2*(Math.abs(width/2 - touchPosition.left)), 2)
 		);
 
-		var $rippleCircle = $('<div>')
-			.addClass(this.rippleCircleClass)
-			.css({
-				opacity: $target.data(this.opacityDataName) || this.opacity,
-				background: $target.data(this.backgroundDataName) || this.background,
-				left: touchPosition.left,
-				top: touchPosition.top,
-				borderRadius: '100%',
-				position: 'absolute'
-			})
-			.appendTo($target);
+		$circle.css({
+			width: diameter,
+			height: diameter,
+			left: touchPosition.left - diameter/2,
+			top: touchPosition.top - diameter/2,
+		});
 
-		$rippleCircle.animate(
-			{to: diameter},
-			{
-				duration: this.expanseDuration,
-				easing: this.expanseEasing,
-				step: function(now){
-					$rippleCircle.css({
-						width: now,
-						height: now,
-						left: touchPosition.left - now/2,
-						top: touchPosition.top - now/2
-					});
-				},
-				complete: function(){
-					touch.rippleAnimationEnded = true;
-					this.endAnimation(touch);
-				}.bind(this)
-			}
-		);
+		var delay = $circle.css('transition-delay') ||
+			$circle.css('-webkit-transition-delay') ||
+			$circle.css('-moz-transition-delay') ||
+			$circle.css('-o-transition-delay') ||
+			'0ms';
+
+		if(delay.slice(-2) === 'ms') delay = parseFloat(delay);
+		else if(delay.slice(-1) === 's') delay = parseFloat(delay)*1000;
+
+		setTimeout(function(){
+			touch.expandAnimation = true;
+		}, delay);
 
 		return this;
 	};
 
 	/**
 	 * @param {RippleTouch} touch
-	 * @return {Ripple}
+	 * @return {TouchRipple}
 	 */
-	Ripple.prototype.endAnimation = function(touch){
-		if(this.touches[touch.identifier]) return;
-		if(!touch.rippleAnimationEnded) return;
+	TouchRipple.prototype.fadeAnimation = function(touch){
+		touch.$currentTarget
+			.find('.touch-ripple-circle')
+			.css('opacity', 0);
 
-		var $target = $(touch.target);
-		var $rippleCircle = $target.children('.'+this.rippleCircleClass);
-
-		$rippleCircle.animate(
-			{opacity: 0},
-			{
-				duration: this.fadeDuration,
-				easing: this.fadeEasing,
-				complete: function(){
-					$rippleCircle.remove();
-					$target.removeClass(this.rippleOnClass);
-				}.bind(this)
-			}
-		);
+		return this;
 	};
 })(jQuery);
