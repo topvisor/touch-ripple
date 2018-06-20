@@ -110,13 +110,15 @@
 	 * @returns {TouchRipple}
 	 */
 	TouchRipple.prototype.attachEvents = function(){
-		this.$el.on('touchstart.touchRipple', this.selector, this, function(e){
+		var $window = $(window);
+
+		$window.on('touchstart.touchRipple', null, this, function(e){
 			setTimeout(function(){
 				e.data.startTouch(e);
 			});
 		});
 
-		this.$el.on('touchmove.touchRipple touchend.touchRipple', this.selector, this, function(e){
+		$window.on('touchmove.touchRipple touchend.touchRipple', null, this, function(e){
 			setTimeout(function(){
 				e.data.endTouch(e);
 			});
@@ -144,6 +146,16 @@
 	};
 
 	/**
+	 * @param {jQuery.fn.init} $target
+	 * @return {jQuery.fn.init|undefined}
+	 */
+	TouchRipple.prototype.getCurrentTarget = function($target){
+		if ($target.length === 0 || $target.closest(this.$el).length === 0 || $target.is(this.exclude)) return;
+		if ($target.is(this.selector)) return $target;
+		else return this.getCurrentTarget($target.closest(this.selector));
+	};
+
+	/**
 	 * @param {TouchEvent} e
 	 */
 	TouchRipple.prototype.startTouch = function(e){
@@ -151,14 +163,15 @@
 			var touch = e.changedTouches[i];
 			if (this.touches[touch.identifier]) return;
 
-			var $currentTarget = $(e.currentTarget);
-			if($currentTarget.is(this.exclude)) return;
-
+			var $currentTarget = this.getCurrentTarget($(touch.target));
 			var rippleTouch = {$currentTarget: $currentTarget};
 			for (var key in touch) rippleTouch[key] = touch[key];
 
 			this.touches[touch.identifier] = rippleTouch;
-			this.expandAnimation(rippleTouch);
+
+			if ($currentTarget) {
+				this.expandAnimation(rippleTouch);
+			}
 		}
 	};
 
@@ -173,9 +186,11 @@
 			touch.ended = true;
 			delete this.touches[touch.identifier];
 
-			if (e.type === 'touchend' && touch.expandAnimation === undefined) this.expandAnimation(touch);
-			else if (touch.expandAnimation === false) this.fadeAnimation(touch);
-			else if (touch.expandAnimation === undefined) touch.$currentTarget.children('.touch-ripple-circle-wrapper').remove();
+			if (touch.$currentTarget) {
+				if (e.type === 'touchend' && touch.expandAnimation === undefined) this.expandAnimation(touch);
+				else if (touch.expandAnimation === false) this.fadeAnimation(touch);
+				else if (touch.expandAnimation === undefined) touch.$currentTarget.children('.touch-ripple-circle-wrapper').remove();
+			}
 		}
 	};
 
