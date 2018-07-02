@@ -4,7 +4,7 @@
  * @link https://github.com/topvisor/touch-ripple
  * @author Anton Solovyov <decaseal@gmail.com>
  * @license MIT
- * @version 0.3
+ * @version 0.4
  */
 (function($){
 	/**
@@ -77,6 +77,7 @@
 	 * @property {jQuery.fn.init} $currentTarget
 	 * @property {boolean} [ended]
 	 * @property {boolean} [expandAnimation]
+	 * @property {number} [expandTimeout]
 	 *
 	 * @type {RippleTouch[]} - RippleTouch by Touch identifiers
 	 */
@@ -123,15 +124,6 @@
 				e.data.endTouch(e);
 			});
 		});
-
-		this.$el.on(
-			'transitionend.touchRipple webkitTransitionEnd.touchRipple oTransitionEnd.touchRipple otransitionend.touchRipple',
-			'.touch-ripple-circle',
-			this,
-			function(e){
-				e.data.endCircleTransition(e);
-			}
-		);
 
 		return this;
 	};
@@ -187,37 +179,25 @@
 			delete this.touches[touch.identifier];
 
 			if (touch.$currentTarget) {
-				if (e.type === 'touchend' && touch.expandAnimation === undefined) this.expandAnimation(touch);
+				if (e.type === 'touchend' && touch.expandAnimation === undefined) this.expandAnimation(touch, 0);
 				else if (touch.expandAnimation === false) this.fadeAnimation(touch);
 				else if (touch.expandAnimation === undefined) touch.$currentTarget.children('.touch-ripple-circle-wrapper').remove();
 			}
 		}
 	};
 
-	TouchRipple.prototype.endCircleTransition = function(e){
-		var $circle = $(e.currentTarget);
-		var touch = $circle.data('touch');
-
-		if (e.originalEvent.propertyName === 'opacity') {
-			$circle.parent('.touch-ripple-circle-wrapper').remove();
-		} else if (e.originalEvent.propertyName === 'top') {
-			touch.expandAnimation = false;
-			if (touch.ended) this.fadeAnimation(touch);
-		}
-	};
-
 	/**
 	 * @param {RippleTouch} touch
+	 * @param {number} [delay]
 	 * @return {TouchRipple}
 	 */
-	TouchRipple.prototype.expandAnimation = function(touch){
-		var $wrapper = touch.$currentTarget.children('.touch-ripple-circle-wrapper');
+	TouchRipple.prototype.expandAnimation = function(touch, delay){
+		clearTimeout(touch.expandTimeout);
+		touch.$currentTarget.children('.touch-ripple-circle-wrapper').remove();
 
-		if (!$wrapper.length) {
-			$wrapper = $('<div>')
-				.addClass('touch-ripple-circle-wrapper')
-				.appendTo(touch.$currentTarget);
-		}
+		var $wrapper = $('<div>')
+			.addClass('touch-ripple-circle-wrapper')
+			.appendTo(touch.$currentTarget);
 
 		var offset = $wrapper.offset();
 		var touchPosition = {
@@ -241,25 +221,23 @@
 			Math.pow(width + 2*(Math.abs(width/2 - touchPosition.left)), 2)
 		);
 
-		$circle.css({
-			width: diameter,
-			height: diameter,
-			left: touchPosition.left - diameter/2,
-			top: touchPosition.top - diameter/2,
-		});
+		if(delay === undefined) delay = touch.$currentTarget.data('touch-ripple-delay') || 0;
 
-		var delay = $circle.css('transition-delay') ||
-			$circle.css('-webkit-transition-delay') ||
-			$circle.css('-moz-transition-delay') ||
-			$circle.css('-o-transition-delay') ||
-			'0ms';
-
-		if(delay.slice(-2) === 'ms') delay = parseFloat(delay);
-		else if(delay.slice(-1) === 's') delay = parseFloat(delay)*1000;
-
-		setTimeout(function(){
+		touch.expandTimeout = setTimeout(function(){
 			touch.expandAnimation = true;
-		}, delay);
+
+			$circle.css({
+				width: diameter,
+				height: diameter,
+				left: touchPosition.left - diameter/2,
+				top: touchPosition.top - diameter/2,
+			});
+
+			setTimeout(function(){
+				touch.expandAnimation = false;
+				if (touch.ended) this.fadeAnimation(touch);
+			}.bind(this), 175)
+		}.bind(this), delay);
 
 		return this;
 	};
@@ -269,9 +247,15 @@
 	 * @return {TouchRipple}
 	 */
 	TouchRipple.prototype.fadeAnimation = function(touch){
-		touch.$currentTarget
+		var $wrapper = touch.$currentTarget.find('.touch-ripple-circle-wrapper');
+
+		$wrapper
 			.find('.touch-ripple-circle')
 			.css('opacity', 0);
+
+		setTimeout(function(){
+			$wrapper.remove();
+		}, 200);
 
 		return this;
 	};
